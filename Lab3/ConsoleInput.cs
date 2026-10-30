@@ -12,7 +12,10 @@ namespace Lab3
             {
                 Console.Write(prompt);
                 var isNumber = int.TryParse(ReadLine(), CultureInfo.InvariantCulture, out var value);
-                if (isNumber && value >= minValue && value <= maxValue) return value;
+                if (isNumber && value >= minValue && value <= maxValue)
+                {
+                    return value;
+                }
 
                 Console.WriteLine($"Нужно целое число от {minValue} до {maxValue}.");
             }
@@ -26,13 +29,18 @@ namespace Lab3
                 // Принимаем и запятую, и точку, независимо от региональных настроек системы.
                 var text = ReadLine().Replace(',', '.');
                 var isNumber = double.TryParse(text, CultureInfo.InvariantCulture, out var value);
-                if (isNumber && double.IsFinite(value)) return value;
+                if (isNumber && double.IsFinite(value))
+                {
+                    return value;
+                }
 
                 Console.WriteLine("Нужно число, например 2.5 или -3.");
             }
         }
 
-        private static string ReadLine() =>
-            Console.ReadLine() ?? throw new EndOfStreamException("Ввод с клавиатуры закончился.");
+        private static string ReadLine()
+        {
+            return Console.ReadLine() ?? throw new EndOfStreamException("Ввод с клавиатуры закончился.");
+        }
     }
 }

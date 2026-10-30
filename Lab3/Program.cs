@@ -30,19 +30,24 @@ namespace Lab3
             0 - выход
             """;
 
-        private static readonly string[] s_sampleText =
-        [
-            "Утром мы пошли в лес за грибами",
-            "Под старой елью нашёлся гриб",
-            "Рядом росли брусника и черника",
-            "На берегу реки стоял высокий дуб",
-            "Корабль медленно отходил от причала",
-            "СУГРОБ",
-            "На ветке сидел голубь",
-            "Бабушка испекла свежий хлеб   ",
-            "",
-            "Конец рассказа.",
-        ];
+        private static readonly string[] s_sampleText;
+
+        static Program()
+        {
+            s_sampleText = new string[]
+            {
+                "Утром мы пошли в лес за грибами",
+                "Под старой елью нашёлся гриб",
+                "Рядом росли брусника и черника",
+                "На берегу реки стоял высокий дуб",
+                "Корабль медленно отходил от причала",
+                "СУГРОБ",
+                "На ветке сидел голубь",
+                "Бабушка испекла свежий хлеб   ",
+                "",
+                "Конец рассказа.",
+            };
+        }
 
         private static void Main()
         {
@@ -51,7 +56,10 @@ namespace Lab3
             {
                 Console.WriteLine(Menu);
                 var taskNumber = ConsoleInput.ReadInt32("Номер задания: ", 0, 8);
-                if (taskNumber == 0) return;
+                if (taskNumber == 0)
+                {
+                    return;
+                }
 
                 RunTask(taskNumber);
             }
@@ -59,23 +67,38 @@ namespace Lab3
 
         private static void RunTask(int taskNumber)
         {
-            Action task = taskNumber switch
-            {
-                1 => FillArrays,
-                2 => MultiplyColumns,
-                3 => EvaluateExpression,
-                4 => MultiplyAdjacentNumbers,
-                5 => FindBuildingSetAge,
-                6 => IncrementNumbers,
-                7 => SumFirstAndMinimum,
-                8 => CopyLinesEndingWithBe,
-                _ => throw new ArgumentOutOfRangeException(nameof(taskNumber)),
-            };
-
             Console.WriteLine();
             try
             {
-                task();
+                switch (taskNumber)
+                {
+                    case 1:
+                        FillArrays();
+                        break;
+                    case 2:
+                        MultiplyColumns();
+                        break;
+                    case 3:
+                        EvaluateExpression();
+                        break;
+                    case 4:
+                        MultiplyAdjacentNumbers();
+                        break;
+                    case 5:
+                        FindBuildingSetAge();
+                        break;
+                    case 6:
+                        IncrementNumbers();
+                        break;
+                    case 7:
+                        SumFirstAndMinimum();
+                        break;
+                    case 8:
+                        CopyLinesEndingWithBe();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(taskNumber));
+                }
             }
             catch (IOException exception)
             {
@@ -171,9 +194,9 @@ namespace Lab3
                 return;
             }
 
-            foreach (var (_, price, minAge, maxAge) in buildingSets)
+            foreach (var toy in buildingSets)
             {
-                Console.WriteLine($"Конструктор за {price} руб. - для детей от {minAge} до {maxAge} лет");
+                Console.WriteLine($"Конструктор за {toy.Price} руб. - для детей от {toy.MinAge} до {toy.MaxAge} лет");
             }
         }
 
@@ -219,10 +242,13 @@ namespace Lab3
         private static Matrix ReadMatrix(string name, int rowCount, int columnCount)
         {
             Console.WriteLine("Ввод по диагоналям, параллельным побочной, начиная с правого нижнего угла:");
-            return new Matrix(
-                rowCount,
-                columnCount,
-                (row, column) => ConsoleInput.ReadDouble($"{name}[{row + 1},{column + 1}] = "));
+
+            double ReadElement(int row, int column)
+            {
+                return ConsoleInput.ReadDouble($"{name}[{row + 1},{column + 1}] = ");
+            }
+
+            return new Matrix(rowCount, columnCount, ReadElement);
         }
 
         private static void PrintMatrix(string title, Matrix matrix)

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -19,14 +18,27 @@ namespace Lab3
         private const int MaxToyAgeSpan = 6;
         private const string BuildingSetName = "Конструктор";
 
-        private static readonly XmlSerializer s_toySerializer = new(typeof(Toy));
-        private static readonly string[] s_toyNames = ["Кукла", "Мяч", "Кубики", BuildingSetName, "Машинка", "Пазл"];
+        private static readonly XmlSerializer s_toySerializer;
+        private static readonly string[] s_toyNames;
+
+        static FileTasks()
+        {
+            s_toySerializer = new XmlSerializer(typeof(Toy));
+            s_toyNames = new string[] { "Кукла", "Мяч", "Кубики", BuildingSetName, "Машинка", "Пазл" };
+        }
 
         public static void FillBinaryFileWithRandomNumbers(string path, int count, Random random)
         {
             ArgumentNullException.ThrowIfNull(random);
 
-            WriteBinaryNumbers(path, Enumerable.Range(0, count).Select(_ => NextRandomNumber(random)));
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+            var numbers = new int[count];
+            for (var index = 0; index < count; index++)
+            {
+                numbers[index] = NextRandomNumber(random);
+            }
+
+            WriteBinaryNumbers(path, numbers);
         }
 
         public static IReadOnlyList<int> ReadBinaryNumbers(string path)
@@ -57,7 +69,10 @@ namespace Lab3
         {
             using var reader = new BinaryReader(File.OpenRead(sourcePath));
             using var writer = new BinaryWriter(File.Create(resultPath));
-            if (IsEndOfFile(reader)) return;
+            if (IsEndOfFile(reader))
+            {
+                return;
+            }
 
             var previous = reader.ReadInt32();
             while (!IsEndOfFile(reader))
@@ -73,7 +88,14 @@ namespace Lab3
         {
             ArgumentNullException.ThrowIfNull(random);
 
-            WriteToys(path, Enumerable.Range(0, count).Select(_ => CreateRandomToy(random)));
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+            var toys = new Toy[count];
+            for (var index = 0; index < count; index++)
+            {
+                toys[index] = CreateRandomToy(random);
+            }
+
+            WriteToys(path, toys);
         }
 
         public static IReadOnlyList<Toy> ReadToys(string path)
@@ -90,33 +112,54 @@ namespace Lab3
             return toys;
         }
 
-        public static IReadOnlyList<Toy> FindBuildingSets(string path) =>
-            ReadToys(path)
-                .Where(toy => string.Equals(toy.Name, BuildingSetName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+        public static IReadOnlyList<Toy> FindBuildingSets(string path)
+        {
+            var buildingSets = new List<Toy>();
+            foreach (var toy in ReadToys(path))
+            {
+                if (string.Equals(toy.Name, BuildingSetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    buildingSets.Add(toy);
+                }
+            }
+
+            return buildingSets;
+        }
 
         public static void FillTextFileWithRandomNumbers(string path, int count, Random random)
         {
             ArgumentNullException.ThrowIfNull(random);
 
-            var lines = Enumerable.Range(0, count).Select(_ => FormatRandomNumber(random));
-            File.WriteAllLines(path, lines);
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+            using var writer = new StreamWriter(path);
+            for (var index = 0; index < count; index++)
+            {
+                writer.WriteLine(FormatRandomNumber(random));
+            }
         }
 
         public static void WriteIncrementedNumbers(string sourcePath, string resultPath)
         {
-            var incrementedNumbers = File.ReadLines(sourcePath)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(IncrementNumber);
-            File.WriteAllLines(resultPath, incrementedNumbers);
+            using var writer = new StreamWriter(resultPath);
+            foreach (var line in File.ReadLines(sourcePath))
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    writer.WriteLine(IncrementNumber(line));
+                }
+            }
         }
 
         public static void FillTextFileWithRandomNumberRows(string path, int rowCount, Random random)
         {
             ArgumentNullException.ThrowIfNull(random);
 
-            var rows = Enumerable.Range(0, rowCount).Select(_ => CreateRandomNumberRow(random));
-            File.WriteAllLines(path, rows);
+            ArgumentOutOfRangeException.ThrowIfNegative(rowCount);
+            using var writer = new StreamWriter(path);
+            for (var row = 0; row < rowCount; row++)
+            {
+                writer.WriteLine(CreateRandomNumberRow(random));
+            }
         }
 
         public static long CalculateSumOfFirstAndMinimum(string path)
@@ -133,7 +176,10 @@ namespace Lab3
                 }
             }
 
-            if (first is null) throw new InvalidOperationException("В файле нет ни одного числа.");
+            if (first is null)
+            {
+                throw new InvalidOperationException("В файле нет ни одного числа.");
+            }
 
             return first.Value + minimum;
         }
@@ -141,8 +187,14 @@ namespace Lab3
         /// <summary>Регистр буквы не учитывается, пробелы в конце строки игнорируются.</summary>
         public static void CopyLinesEndingWith(string sourcePath, string resultPath, char letter)
         {
-            var lines = File.ReadLines(sourcePath).Where(line => EndsWithLetter(line, letter));
-            File.WriteAllLines(resultPath, lines);
+            using var writer = new StreamWriter(resultPath);
+            foreach (var line in File.ReadLines(sourcePath))
+            {
+                if (EndsWithLetter(line, letter))
+                {
+                    writer.WriteLine(line);
+                }
+            }
         }
 
         private static void WriteBinaryNumbers(string path, IEnumerable<int> numbers)
@@ -166,21 +218,36 @@ namespace Lab3
             }
         }
 
-        private static bool IsEndOfFile(BinaryReader reader) =>
-            reader.BaseStream.Position >= reader.BaseStream.Length;
+        private static bool IsEndOfFile(BinaryReader reader)
+        {
+            return reader.BaseStream.Position >= reader.BaseStream.Length;
+        }
 
-        private static int NextRandomNumber(Random random) => random.Next(MinRandomNumber, MaxRandomNumber + 1);
+        private static int NextRandomNumber(Random random)
+        {
+            return random.Next(MinRandomNumber, MaxRandomNumber + 1);
+        }
 
-        private static string FormatRandomNumber(Random random) =>
-            NextRandomNumber(random).ToString(CultureInfo.InvariantCulture);
+        private static string FormatRandomNumber(Random random)
+        {
+            return NextRandomNumber(random).ToString(CultureInfo.InvariantCulture);
+        }
 
-        private static string IncrementNumber(string number) =>
-            (long.Parse(number, CultureInfo.InvariantCulture) + 1).ToString(CultureInfo.InvariantCulture);
+        private static string IncrementNumber(string number)
+        {
+            return (long.Parse(number, CultureInfo.InvariantCulture) + 1).ToString(CultureInfo.InvariantCulture);
+        }
 
         private static string CreateRandomNumberRow(Random random)
         {
             var count = random.Next(1, MaxNumbersInRow + 1);
-            return string.Join(' ', Enumerable.Range(0, count).Select(_ => FormatRandomNumber(random)));
+            var numbers = new string[count];
+            for (var index = 0; index < count; index++)
+            {
+                numbers[index] = FormatRandomNumber(random);
+            }
+
+            return string.Join(' ', numbers);
         }
 
         private static Toy CreateRandomToy(Random random)

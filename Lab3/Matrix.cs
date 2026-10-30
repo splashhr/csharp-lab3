@@ -89,9 +89,21 @@ namespace Lab3
             _elements = elements;
         }
 
-        public int RowCount => _elements.GetLength(0);
+        public int RowCount
+        {
+            get
+            {
+                return _elements.GetLength(0);
+            }
+        }
 
-        public int ColumnCount => _elements.GetLength(1);
+        public int ColumnCount
+        {
+            get
+            {
+                return _elements.GetLength(1);
+            }
+        }
 
         public static Matrix operator *(double scalar, Matrix matrix)
         {
@@ -202,9 +214,15 @@ namespace Lab3
         }
 
         // Сотые доли, чтобы матрицу можно было без потерь перенести в онлайн-калькулятор.
-        private static double NextAboveHalf(Random random) => random.Next(51, 101) / 100.0;
+        private static double NextAboveHalf(Random random)
+        {
+            return random.Next(51, 101) / 100.0;
+        }
 
-        private static double NextUpToHalf(Random random) => random.Next(0, 51) / 100.0;
+        private static double NextUpToHalf(Random random)
+        {
+            return random.Next(0, 51) / 100.0;
+        }
 
         private bool IsFirstElementAboveDiagonals(int column)
         {
@@ -212,14 +230,23 @@ namespace Lab3
             var diagonalLength = Math.Min(RowCount, ColumnCount);
             for (var row = 0; row < diagonalLength; row++)
             {
-                if (!IsAboveOtherCell(firstElement, column, row, row)) return false;
-                if (!IsAboveOtherCell(firstElement, column, row, ColumnCount - 1 - row)) return false;
+                if (!IsAboveOtherCell(firstElement, column, row, row))
+                {
+                    return false;
+                }
+
+                if (!IsAboveOtherCell(firstElement, column, row, ColumnCount - 1 - row))
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private bool IsAboveOtherCell(double firstElement, int firstElementColumn, int row, int column) =>
-            (row == 0 && column == firstElementColumn) || firstElement > _elements[row, column];
+        private bool IsAboveOtherCell(double firstElement, int firstElementColumn, int row, int column)
+        {
+            return (row == 0 && column == firstElementColumn) || firstElement > _elements[row, column];
+        }
     }
 }
